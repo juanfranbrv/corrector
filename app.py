@@ -8,20 +8,6 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
 import tempfile
 
-# Función para inicializar la configuración de la sesión
-if 'extracted_text' not in st.session_state:
-    st.session_state['extracted_text'] = ""
-
-# Configuración de la página
-st.set_page_config(
-    page_title="OCR con LangChain y LLMs",
-    page_icon="📝",
-    layout="wide"
-)
-
-# Título principal
-st.title("Extracción de Texto desde Imágenes con LLMs")
-
 def encode_image(image_file):
     """Codifica una imagen en base64 para enviarla a la API"""
     temp_file = None
@@ -49,12 +35,13 @@ def extract_text_from_image(image_file, model_name, api_keys):
     # Instrucción para la extracción de texto
     prompt = "Por favor, extrae y transcribe todo el texto que aparece en esta imagen. Devuelve únicamente el texto, sin explicaciones adicionales."
     
-    if model_name == "OpenAI GPT-4 Vision":
+    if model_name == "OpenAI GPT-4o-mini":
         # Configurar el modelo de OpenAI
         llm = ChatOpenAI(
             model="gpt-4o-mini",
             api_key=api_keys["OPENAI_API_KEY"],
-            max_tokens=1000
+            max_tokens=1000,
+            temperature=1,
         )
         
         # Convertir imagen a base64
@@ -89,11 +76,12 @@ def extract_text_from_image(image_file, model_name, api_keys):
         response = llm.invoke([message])
         return response.content
     
-    elif model_name == "Groq LLM+":
+    elif model_name == "Groq LLM: llama-3.2-90b-vision-preview":
         # Configurar el modelo de Groq
         llm = ChatGroq(
             model="llama-3.2-90b-vision-preview",  # Modelo de Groq con capacidades de visión
-            api_key=api_keys["GROQ_API_KEY"]
+            api_key=api_keys["GROQ_API_KEY"],
+            temperature=0.5,
         )
         
         # Convertir imagen a base64
@@ -131,27 +119,43 @@ def extract_text_from_image(image_file, model_name, api_keys):
     else:
         return "Modelo no soportado"
 
-# Verificar si las claves API existen en secrets o en el entorno
-api_keys = {}
-for key in ["OPENAI_API_KEY", "GROQ_API_KEY"]:
-    # Intentar obtener de st.secrets
-    try:
-        api_keys[key] = st.secrets[key]
-    except:
-        # Si no está en secrets, intentar obtener del entorno
-        api_keys[key] = os.environ.get(key, "")
+# ═══════════════════════════════════
+# Main Streamlit App
+# ═══════════════════════════════════ 
+# Función para inicializar la configuración de la sesión
+if 'extracted_text' not in st.session_state:
+    st.session_state['extracted_text'] = ""
+
+# Configuración de la página
+st.set_page_config(
+    page_title="OCR con LangChain y LLMs",
+    page_icon="📝",
+    layout="wide"
+)
+
+# Título principal
+st.title("Extracción de Texto desde Imágenes con LLMs")
+
+
+OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", None)
+GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", None)
+
+# Crear un diccionario con todas las claves API
+api_keys = {
+    "OPENAI_API_KEY": OPENAI_API_KEY,
+    "GROQ_API_KEY": GROQ_API_KEY
+}
+
+
 
 # Panel lateral (sidebar)
 with st.sidebar:
 
     # Logo en la parte superior del sidebar
-    try:
-        logo = Image.open("logoweb1.png")
-        st.image(logo, width=200, caption="")
-    except Exception as e:
-        st.error(f"No se pudo cargar el logo: {e}")
-    
-    # Texto dummy debajo del logo
+    logo = Image.open("logoweb1.png")
+    st.image(logo, width=200, caption="")
+        
+    # Texto debajo del logo
     st.markdown("""
     <div style="; padding: 10px 0; margin-bottom: 20px; border-bottom: 1px solid #eee;">
         <p>Herramienta de extracción OCR basada en modelos LLM</p>
@@ -161,18 +165,15 @@ with st.sidebar:
 
     st.header("Configuración")
     
-    # Selector de modelos LLM (removido Claude)
+    # Selector de modelos LLM
+    # Los if de la funcion extract_text_from_image se encargan de la logica de los modelos
     selected_model = st.selectbox(
         "Selecciona un modelo LLM",
-        options=["OpenAI GPT-4 Vision", "Groq LLM+"],
+        options=["OpenAI GPT-4o-mini", "Groq LLM: llama-3.2-90b-vision-preview"],
         index=0
     )
     
-    # Campos para las API keys si no están configuradas
-    if selected_model == "OpenAI GPT-4 Vision" and not api_keys["OPENAI_API_KEY"]:
-        api_keys["OPENAI_API_KEY"] = st.text_input("OpenAI API Key", type="password")
-    elif selected_model == "Groq LLM+" and not api_keys["GROQ_API_KEY"]:
-        api_keys["GROQ_API_KEY"] = st.text_input("Groq API Key", type="password")
+
     
     # Uploader de imágenes
     uploaded_file = st.file_uploader(
@@ -199,17 +200,7 @@ with col2:
     st.subheader("Texto Extraído")
     
     if process_button and uploaded_file is not None:
-        # Verificar que tengamos la API key necesaria
-        api_key_name = ""
-        if selected_model == "OpenAI GPT-4 Vision":
-            api_key_name = "OPENAI_API_KEY"
-        elif selected_model == "Groq LLM+":
-            api_key_name = "GROQ_API_KEY"
-        
-        if not api_keys[api_key_name]:
-            st.error(f"Por favor, proporciona una API key válida para {selected_model}")
-        else:
-            with st.spinner(f"Extrayendo texto con {selected_model}..."):
+        with st.spinner(f"Extrayendo texto con {selected_model}..."):
                 try:
                     # Realizar la extracción real de texto
                     extracted_text = extract_text_from_image(uploaded_file, selected_model, api_keys)
