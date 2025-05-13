@@ -1,0 +1,34 @@
+<!-- templates/partials/correction_results.html (mejorado para errores) -->
+<div class="mt-6 p-4 bg-white rounded shadow">
+    <h2 class="text-xl font-semibold mb-2">Resultados de la Corrección</h2>
+    {% if filename %}
+        <p class="text-sm text-gray-600 mb-2">Archivo: <span class="font-medium">{{ filename }}</span></p>
+    {% endif %}
+
+    {% if error_transcription and "Error del sistema" in error_transcription %}
+        <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <h3 class="text-lg font-medium">Error General del Sistema:</h3>
+            <p>{{ error_transcription }}</p>
+        </div>
+    {% else %}
+        <div class="mb-4">
+            <h3 class="text-lg font-medium text-gray-800">Texto Transcrito:</h3>
+            {% if error_transcription %}
+                <div class="p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+                    <p><strong>Problema en la transcripción:</strong> {{ error_transcription }}</p>
+                </div>
+            {% endif %}
+            <pre class="mt-1 p-2 bg-gray-100 rounded whitespace-pre-wrap">{{ transcribed_text }}</pre>
+        </div>
+
+        <div>
+            <h3 class="text-lg font-medium text-gray-800">Observaciones y Corrección:</h3>
+            {% if error_correction %}
+                 <div class="p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+                    <p><strong>Problema en la corrección:</strong> {{ error_correction }}</p>
+                </div>
+            {% endif %}
+            <pre class="mt-1 p-2 bg-gray-100 rounded whitespace-pre-wrap">{{ corrected_text }}</pre>
+        </div>
+    {% endif %}
+</div>

@@ -1,19 +1,99 @@
+<!-- templates/index.html -->
 {% extends "base.html" %}
 
-{% block title %}Bienvenido al Corrector{% endblock %}
+{% block title %}Sube tu Redacción - {{ app_title }}{% endblock %}
+
+{% block head_extra %}
+    <!-- Puedes añadir estilos específicos para esta página aquí si es necesario -->
+    <style>
+        /* Añade un pequeño spinner para feedback visual mientras HTMX carga */
+        .htmx-indicator {
+            display: none;
+            /* Puedes personalizar el spinner como quieras */
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px; /* Espacio respecto al botón */
+        }
+        .htmx-request .htmx-indicator {
+            display: inline-block; /* Muestra el spinner durante la petición */
+        }
+        .htmx-request button[type="submit"] {
+            opacity: 0.7; /* Opcional: atenúa el botón durante la carga */
+            cursor: not-allowed;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
-<h1 class="text-3xl font-bold text-blue-600 mb-4">Asistente de Corrección</h1>
+<div class="max-w-2xl mx-auto">
+    <header class="mb-8 text-center">
+        <h1 class="text-4xl font-bold text-blue-700">{{ app_title }}</h1>
+        <p class="text-lg text-gray-600 mt-2">Sube una imagen de tu redacción manuscrita para obtener una transcripción y correcciones detalladas.</p>
+    </header>
 
-<div id="message-area" class="p-4 bg-white rounded shadow mb-4">
-    Haz clic en el botón para cargar un mensaje desde el servidor.
+    <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-800">Subir Redacción</h2>
+        <form
+            hx-post="/upload-and-correct/"
+            hx-target="#correction-output"
+            hx-swap="innerHTML"
+            hx-encoding="multipart/form-data"
+            class="space-y-6">
+            
+            <div>
+                <label for="essay_image" class="block text-sm font-medium text-gray-700 mb-1">Selecciona una imagen (JPG, PNG):</label>
+                <input type="file" name="essay_image" id="essay_image" required
+                       class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <p class="mt-1 text-xs text-gray-500">Asegúrate de que la imagen sea clara y legible.</p>
+            </div>
+            
+            <div class="flex items-center">
+                <button type="submit"
+                        class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                    Subir y Corregir
+                </button>
+                <!-- Indicador de carga de HTMX -->
+                <div class="htmx-indicator ml-4">
+                    <!-- Si quieres un texto en lugar de un spinner CSS: <img src="/static/img/spinner.gif" alt="Cargando..."> -->
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Área donde se mostrarán los resultados -->
+    <section id="correction-output" class="mt-8">
+        <!-- Los resultados de la corrección aparecerán aquí después de la subida -->
+        <!-- Puedes poner un mensaje inicial si quieres -->
+        <div class="p-4 text-center text-gray-500">
+            Los resultados de la transcripción y corrección se mostrarán aquí una vez que subas una imagen.
+        </div>
+    </section>
+
+    <!-- Ejemplo de HTMX /greet (opcional, puedes quitarlo) -->
+    <!--
+    <section class="mt-10 p-4 bg-gray-50 rounded shadow">
+        <h3 class="text-lg font-semibold mb-2">Prueba de HTMX</h3>
+        <div id="message-area" class="p-3 bg-white rounded shadow-sm mb-3 min-h-[50px]">
+            Haz clic en el botón para cargar un mensaje desde el servidor.
+        </div>
+        <button 
+            hx-get="/greet" 
+            hx-target="#message-area"
+            hx-swap="innerHTML"
+            class="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded transition duration-150">
+            Saludar desde el Servidor
+        </button>
+    </section>
+    -->
 </div>
 
-<button
-    hx-get="/greet"
-    hx-target="#message-area"
-    hx-swap="innerHTML"
-    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-    Saludar desde el Servidor
-</button>
+{% endblock %}
+
+{% block scripts_extra %}
+    <!-- Puedes añadir JS específico para esta página aquí si es necesario -->
+    <!-- Por ejemplo, para Alpine.js más adelante -->
 {% endblock %}
