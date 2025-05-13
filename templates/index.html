@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Bienvenido al Corrector{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-blue-600 mb-4">Asistente de Corrección</h1>
+
+<div id="message-area" class="p-4 bg-white rounded shadow mb-4">
+    Haz clic en el botón para cargar un mensaje desde el servidor.
+</div>
+
+<button
+    hx-get="/greet"
+    hx-target="#message-area"
+    hx-swap="innerHTML"
+    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    Saludar desde el Servidor
+</button>
+{% endblock %}
