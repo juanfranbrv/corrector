@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: corrector-web
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        fromSecret: OPENAI_API_KEY
+      - key: OTHER_ENV_VAR
+        fromSecret: OTHER_ENV_VAR
